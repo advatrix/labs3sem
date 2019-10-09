@@ -336,3 +336,4 @@ framework.*
 *.sln
 *.filters
 Debug/
+*.config
