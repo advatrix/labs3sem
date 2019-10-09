@@ -333,3 +333,4 @@ ASALocalRun/
 pch.*
 framework.*
 *.vcxproj
+*.sln
