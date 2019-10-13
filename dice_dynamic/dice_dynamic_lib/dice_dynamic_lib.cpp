@@ -1,7 +1,6 @@
-﻿
-#include "pch.h"
+﻿#include "pch.h"
 #include "framework.h"
-#include "dyce_dynamic_lib.h"
+#include "dice_dynamic_lib.h"
 #include <ctime>
 
 namespace DiceDyn {
@@ -25,7 +24,7 @@ namespace DiceDyn {
 	}
 
 	int Dice::operator [](int index) const {
-		if (index < 0 || index > n_) throw std::exception("incorrect index");
+		if (index < 0 || index > n_ - 1) throw std::exception("incorrect index");
 		return points_[index];
 	}
 
