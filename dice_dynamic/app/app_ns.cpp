@@ -15,7 +15,7 @@ namespace app {
 		print("8 - check coincidences");
 		print("9 - add new group of dice");
 		int d = 0;
-		input(d);
+		if (input(d) == -1) d = 0;
 		return d;
 	}
 
@@ -111,9 +111,9 @@ namespace app {
 			}
 			else {
 				try {
-					DiceDyn::Dice newdice(n);
+					DiceDyn::Dice newdice(n, nullptr);
 					std::cout << newdice;
-					dice = dice + newdice;
+					dice += newdice;
 				}
 				catch (std::exception& e) {
 					print(e.what());

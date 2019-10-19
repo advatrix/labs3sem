@@ -4,49 +4,95 @@
 #include <ctime>
 
 namespace DiceDyn {
-	void Dice::operator += (int pts) {
-		if (pts < 1 || pts > 6) throw std::exception("incorrect points");
-		if (n_ >= size_) {
-			size_++;
-			int* old = points_;
-			points_ = new int[size_];
-			for (int i = 0; i < size_ - 1; i++) points_[i] = old[i];
-			delete[] old;
+	Dice& Dice::operator += (const Dice& other) {
+		int newSize = n_ + other.getN();
+		if (newSize > size_) {
+			int* tmpPoints = points_;
+			points_ = new int[newSize];
+			for (int i = 0; i < newSize; i++) {
+				if (i < n_) points_[i] = tmpPoints[i];
+				else points_[i] = other[i - n_];
+			}
+			n_ = newSize;
+			size_ = newSize;
 		}
-		points_[n_] = pts;
-		n_++;
+		else {
+			for (int i = n_; i < newSize; i++) points_[i] = other[i - n_];
+			n_ = newSize;
+		}
+		return *this;
 	}
 
-	void Dice::operator -= (int pts) {
+
+/*	Dice& Dice::operator -= (const Dice& other) {
+		int tmp = 0, n = 0, iPos = 0, j = 0;
+		int* pos = new int[n_];
+		for (int i = 0; i < n_; i++) pos[i] = 0;
+		for (int i = 0; i < n_; i++) {
+			if (points_[i] == other[j]) {
+				if (++j == other.getN()) {
+					for (int k = i - j; k < i; k++, n++) pos[n] = k;
+				}
+				else j++;
+			}
+			else j = 0;
+		}
+		j = 0;
+		for (int i = 0; i < n_; i++) if (i == pos[tmp++]) points_[j++] = points_[i];
+		n_ = j;
+		return *this;
+	}
+	*/
+	Dice& Dice::operator -= (const Dice& other) {
+		int* newpts = new int[n_];
+		int j = 0, otherN = other.getN(), k = 0;
+		for (int i = 0; i < n_; i++) {
+			if (points_[i] == other[j]) j++;
+			else j = 0;
+			newpts[k] = points_[i];
+			if (j == otherN) { k -= j; j = 0; }
+			k++;
+		}
+		delete[] points_;
+		points_ = newpts;
+		size_ = n_;
+		n_ = k;
+		return *this;
+	}
+		/*
+		int* pos = new int[n_];
+		...
+		хранить все i для удаления в pos
+		
+		
+		
+		
+		*/
+		
+		/*
+		пройтись по массиву и определить, нужно ли удалять текущие элементы
+		
+		*/
+	/*void Dice::operator -= (int pts) {
 		int j = 0;
 		for (int i = 0; i < n_; i++) if (points_[i] != pts) points_[j++] = points_[i];
 		n_ = j;
-	}
+	}*/
 
 	int Dice::operator [](int index) const {
 		if (index < 0 || index > n_ - 1) throw std::exception("incorrect index");
 		return points_[index];
 	}
 
-	Dice& Dice::operator + (Dice& other) {
-		if (n_ + other.getN() > size_) {
-			size_ = n_ + other.getN();
-			int old_n = n_;
-			n_ = size_;
-			int* old = points_;
-			points_ = new int[size_];
-			for (int i = 0; i < n_; i++) {
-				if (i < old_n) points_[i] = old[i];
-				else points_[i] = other[i - old_n];
-			}
-			delete[] old;
+	Dice& operator + (const Dice& th, const Dice& other) {
+		int newSize = th.n_ + other.n_;
+		int* newPoints = new int[newSize];
+		for (int i = 0; i < newSize; i++) {
+			if (i < th.getN()) newPoints[i] = th.points_[i];
+			else newPoints[i] = other[i - th.n_];
 		}
-		else {
-			int old_n = n_;
-			n_ += other.getN();
-			for (int i = old_n; i < n_; i++) points_[i] = other[i - old_n];
-		}
-		return *this;
+		static Dice ans(newSize, newPoints);
+		return ans;
 	}
 
 	std::ostream& operator << (std::ostream& s, const Dice& dice) {
@@ -54,6 +100,74 @@ namespace DiceDyn {
 		else for (int i = 0; i < dice.n_; i++) s << dice.points_[i] << ' ';
 		s << std::endl;
 		return s;
+	}
+
+	std::istream& operator >> (std::istream& s, Dice& dice) {
+		int n, tmp;
+		s >> n;
+		if (n < 0) s.unget();
+		if (s.good()) {
+			if (n > dice.n_) {
+				if (dice.points_) delete[] dice.points_;
+				dice.points_ = new int[n];
+			}
+			dice.n_ = n;
+			for (int i = 0; i < n;) {
+				s >> tmp;
+				if (s.good()) {
+					if (tmp < 1 || tmp > 6) s.unget();
+					else {
+						dice.points_[i] = tmp;
+						i++;
+					}
+				}
+				else s.setstate(std::ios::failbit);
+			}
+		}
+		else s.setstate(std::ios::failbit);
+		return s;
+	}
+
+	Dice::Dice(const Dice& ob) {
+		n_ = ob.getN();
+		size_ = n_;
+		points_ = nullptr;
+		if (n_) {
+			points_ = new int[n_];;
+			for (int i = 0; i < n_; i++) points_[i] = ob[i];
+		}
+	}
+
+	Dice& Dice::operator = (const Dice& other) {
+		if (this != &other) {
+			delete[] points_;
+			points_ = nullptr;
+			size_ = n_;
+			if ((n_ = other.getN())) {
+				points_ = new int[n_];
+				for (int i = 0; i < n_; i++) points_[i] = other[i];
+			}
+		}
+		return *this;
+	}
+
+	Dice::Dice(Dice&& other) noexcept {
+		n_ = other.getN();
+		size_ = other.getSize();
+		points_ = other.points_;
+		other.points_ = nullptr;
+	}
+
+	Dice& Dice::operator = (Dice&& other) noexcept {
+		int tn = n_, ts = size_;
+		n_ = other.n_;
+		size_ = other.size_;
+		other.n_ = tn;
+		other.size_ = ts;
+		int* tptr = points_;
+		points_ = other.points_;
+		other.points_ = tptr;
+		return *this;
 	}
 
 	int Dice::sum() const {
@@ -81,27 +195,31 @@ namespace DiceDyn {
 	}
 
 	Dice::Dice(int n) {
-		if (n < 0) throw std::exception("illegal n");
-		srand(time(nullptr));
-		n_ = n;
-		size_ = n;
-		points_ = new int[n];
-		for (int i = 0; i < n; i++) points_[i] = rand() % 6 + 1;
+		if (n < 1 || n > 6) throw std::exception("incorrect dice");
+		n_ = 1;
+		size_ = 1;
+		points_ = new int[1];
+		points_[0] = n;
 	}
 
-	Dice::Dice(int n, int* arr) {
+	Dice::Dice(int n, const int* arr) {
 		if (n < 0) throw std::exception("illegal n");
-		if (n && !arr) throw std::exception("array nullptr");
-		try {
-			for (int i = 0; i < n; i++) if (arr[i] < 1 || arr[i] > 6) throw std::exception("spoilt array");
-		}
-		catch (...) {
-			throw std::exception("invalid array");
+		if (arr) {
+			try {
+				for (int i = 0; i < n; i++) if (arr[i] < 1 || arr[i] > 6) throw std::exception("spoilt array");
+			}
+			catch (...) {
+				throw std::exception("invalid array");
+			}
 		}
 		n_ = n;
 		size_ = n;
 		points_ = new int[n];
-		for (int i = 0; i < n; i++) points_[i] = arr[i];
+		if(arr) for (int i = 0; i < n; i++) points_[i] = arr[i];
+		else {
+			srand(time(nullptr));
+			for (int i = 0; i < n; i++) points_[i] = rand() % 6 + 1;
+		}
 	}
 
 	void Dice::remove() {

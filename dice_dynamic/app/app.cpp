@@ -10,13 +10,11 @@ using namespace app;
 
 int main() {
 	DiceDyn::Dice dice;
-	int q = 0;
 	std::cout << dice;
+	int d = 0;
 	do {
-		int d = dialog();
+		d = dialog();
 		menu(d, dice);
-		print("continue? 0/1");
-		input(q);
-	} while (q);
+	} while (d);
 	return 0;
 }
