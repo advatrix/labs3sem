@@ -11,5 +11,7 @@ namespace game {
 	int dialog();
 
 	void menu(int n);
+
+	void results(const Player*, int);
 }
 
