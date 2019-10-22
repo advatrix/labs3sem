@@ -21,7 +21,7 @@ namespace DiceDyn {
 		bool coincidence() const;
 		inline int getN() const { return n_; }
 		inline int getSize() const { return size_; }
-		friend Dice& operator + (const Dice&, const Dice&); // friend
+		friend Dice operator + (const Dice&, const Dice&); // friend
 		Dice& operator += (const Dice& other); //A+=B+=C;
 		Dice& operator -= (const Dice& other); //A+=B+=C;
 		int operator [](int index) const;
